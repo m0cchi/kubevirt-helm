@@ -1,0 +1,7 @@
+apiVersion: v2
+name: kubevirt
+description: A Helm chart for kubevirt
+
+type: application
+version: "1.2.0"
+appVersion: "v1.2.0"
