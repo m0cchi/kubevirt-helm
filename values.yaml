@@ -1,6 +1,15 @@
+
+
 cr:
   created: true
   microk8s: false
   configuration:
     developerConfiguration:
       featureGates: []
+
+cdi:
+  created: true
+  namespaceName: cdi
+
+cdiCr:
+  created: true
