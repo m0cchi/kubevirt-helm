@@ -1,5 +1,6 @@
 cr:
   created: true
+  microk8s: false
   configuration:
     developerConfiguration:
       featureGates: []

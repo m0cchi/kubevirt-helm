@@ -1,4 +1,4 @@
-{{- if .Values.cr.created }}
+{{- if and .Values.cr.created (not .Values.cr.microk8s) }}
 ---
 apiVersion: kubevirt.io/v1
 kind: KubeVirt
@@ -12,4 +12,39 @@ spec:
   customizeComponents: {}
   imagePullPolicy: IfNotPresent
   workloadUpdateStrategy: {}
+{{- end }}
+{{- if and .Values.cr.created .Values.cr.microk8s }}
+---
+apiVersion: kubevirt.io/v1
+kind: KubeVirt
+metadata:
+  name: kubevirt
+  namespace: kubevirt
+spec:
+  certificateRotateStrategy: {}
+  configuration:
+    {{- nindent 4 (toYaml .Values.cr.configuration )}}
+  customizeComponents:
+    patches:
+      - resourceType: DaemonSet
+        resourceName: virt-handler
+        patch: '{"spec": {"template": {"spec": {
+            "volumes": [
+              {"name": "kubelet-pods", "hostPath": {"path": "/var/snap/microk8s/common/var/lib/kubelet/pods"}},
+              {"name": "kubelet-pods-shortened", "hostPath": {"path": "/var/snap/microk8s/common/var/lib/kubelet/pods"}},
+              {"name": "device-plugin", "hostPath": {"path": "/var/snap/microk8s/common/var/lib/kubelet/device-plugins"}}
+            ],
+            "containers": [{
+              "name": "virt-handler",
+              "volumeMounts": [
+                {"name": "kubelet-pods", "mountPath": "/var/snap/microk8s/common/var/lib/kubelet/pods", "mountPropagation": "Bidirectional"},
+                {"name": "device-plugin", "mountPath": "/var/snap/microk8s/common/var/lib/kubelet/device-plugins"}
+              ]
+            }]
+          }}}}'
+        type: strategic
+    flags:
+      handler:
+        kubelet-pods-dir: /var/snap/microk8s/common/var/lib/kubelet/pods
+        kubelet-root: /var/snap/microk8s/common/var/lib/kubelet
 {{- end }}
